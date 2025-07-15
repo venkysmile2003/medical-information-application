@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Chatbot</title>
+<link rel="stylesheet" href="/static/style.css">
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+<div class="container">
+<h1>Medical Chatbot</h1>
+<div class="chat-window">
+<div id="chat-output" class="chat-output"></div>
+</div>
+<div class="input-area">
+<button onclick="startRecognition()" class="voice-button">🎤
+Speak</button>
+</div>
+</div>
+<script>
+var socket = io.connect('http://' + document.domain + ':' + location.port);
+function startRecognition() {
+
+28
+if ('webkitSpeechRecognition' in window) {
+var recognition = new webkitSpeechRecognition();
+recognition.lang = "en-US";
+recognition.onresult = function(event) {
+var transcript = event.results[0][0].transcript;
+addMessage('You', transcript);
+socket.emit('voice_command', {audio: transcript});
+};
+recognition.start();
+} else {
+alert("Speech Recognition not supported in this browser.");
+}
+}
+socket.on('bot_response', function(data) {
+addMessage('Bot', data.response);
+});
+function addMessage(sender, message) {
+const chatOutput = document.getElementById('chat-output');
+const messageElement = document.createElement('div');
+messageElement.classList.add('chat-message');
+messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+chatOutput.appendChild(messageElement);
+chatOutput.scrollTop = chatOutput.scrollHeight;
+}
+</script>
+</body>
+</html>
